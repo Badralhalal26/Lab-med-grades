@@ -1,0 +1,2013 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>منظومة رصد درجات النشاط والمشاركة | كلية الطب والعلوم الصحية - جامعة صنعاء</title>
+
+  <!-- الخطوط والأيقونات -->
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- مكتبات التنبيهات والإكسل والـ PDF -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <style>
+    :root {
+      /* الهوية البصرية المستخرجة مباشرة من شعار كلية الطب والعلوم الصحية - جامعة صنعاء */
+      --sanaa-emerald: #0b7a4b;       /* الأخضر الزمردي في قلب الشعار */
+      --sanaa-emerald-dark: #065232;
+      --sanaa-navy: #14284b;          /* الكحلي الداكن لمجهر وثعبان الشعار */
+      --sanaa-gold: #c89d42;          /* الذهبي الملكي لدرع الشعار وشمس الحكمة اليمانية */
+      --sanaa-gold-light: #fbf6eb;
+      --sanaa-crimson: #b81d24;       /* الأحمر للهلال الطبي في الشعار */
+      --excel-peach: #f5cba7;         /* لون ترويسة كشف الإكسل المرفق */
+      --bg-surface: #f3f6f9;
+      --white: #ffffff;
+      --border-color: #d8e2ec;
+      --shadow-soft: 0 10px 30px rgba(20, 40, 75, 0.08);
+      --shadow-gold: 0 6px 20px rgba(200, 157, 66, 0.25);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Cairo', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-surface);
+      background-image: radial-gradient(circle at top right, rgba(11, 122, 75, 0.05), transparent 40%),
+                        radial-gradient(circle at bottom left, rgba(200, 157, 66, 0.07), transparent 40%);
+      color: var(--sanaa-navy);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* الترويسة الرسمية بشعار الكلية */
+    .official-header {
+      background: linear-gradient(135deg, var(--sanaa-navy) 0%, #0d3b49 50%, var(--sanaa-emerald) 100%);
+      color: var(--white);
+      padding: 14px 24px;
+      border-bottom: 4px solid var(--sanaa-gold);
+      box-shadow: var(--shadow-soft);
+      position: relative;
+    }
+
+    .header-container {
+      max-width: 1320px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .brand-box {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .logo-frame {
+      width: 74px;
+      height: 74px;
+      background: var(--white);
+      border-radius: 16px;
+      padding: 4px;
+      border: 2.5px solid var(--sanaa-gold);
+      box-shadow: var(--shadow-gold);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+
+    .logo-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .brand-titles h1 {
+      font-size: 1.3rem;
+      font-weight: 900;
+      color: var(--white);
+      letter-spacing: 0.2px;
+    }
+
+    .brand-titles h2 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--sanaa-gold);
+      margin-top: 2px;
+    }
+
+    .brand-titles p {
+      font-size: 0.82rem;
+      color: #dbe7f0;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .block-pill {
+      background: rgba(255, 255, 255, 0.12);
+      border: 1.5px solid var(--sanaa-gold);
+      padding: 7px 18px;
+      border-radius: 50px;
+      font-weight: 800;
+      font-size: 0.92rem;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .user-session-badge {
+      background: var(--sanaa-gold);
+      color: var(--sanaa-navy);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-weight: 800;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* الحاوية الرئيسية */
+    .main-container {
+      max-width: 1320px;
+      width: 100%;
+      margin: 28px auto;
+      padding: 0 16px;
+      flex: 1;
+    }
+
+    /* ================= بوابة الدخول المزدوجة (معيد / مسؤول) ================= */
+    .auth-wrapper {
+      max-width: 900px;
+      margin: 20px auto;
+      display: grid;
+      grid-template-columns: 1fr 1.15fr;
+      background: var(--white);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 15px 40px rgba(20, 40, 75, 0.12);
+      border: 1px solid rgba(200, 157, 66, 0.3);
+    }
+
+    @media (max-width: 768px) {
+      .auth-wrapper {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* اللوحة اليمنى الترحيبية بالهوية البصرية */
+    .auth-hero {
+      background: linear-gradient(155deg, var(--sanaa-navy) 0%, var(--sanaa-emerald-dark) 100%);
+      color: var(--white);
+      padding: 36px 28px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      position: relative;
+      border-left: 4px solid var(--sanaa-gold);
+    }
+
+    .auth-hero-logo {
+      width: 135px;
+      height: 135px;
+      background: var(--white);
+      border-radius: 24px;
+      padding: 8px;
+      border: 3px solid var(--sanaa-gold);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      margin-bottom: 18px;
+      object-fit: contain;
+    }
+
+    .auth-hero h2 {
+      font-size: 1.35rem;
+      font-weight: 900;
+      margin-bottom: 6px;
+      color: #fff;
+    }
+
+    .auth-hero h3 {
+      font-size: 1rem;
+      color: var(--sanaa-gold);
+      margin-bottom: 14px;
+      font-weight: 700;
+    }
+
+    .auth-hero p {
+      font-size: 0.86rem;
+      line-height: 1.7;
+      color: #e2eef8;
+    }
+
+    /* اللوحة اليسرى لنموذج الدخول */
+    .auth-form-side {
+      padding: 32px 30px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .portal-switcher {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      background: #eef3f8;
+      padding: 6px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+    }
+
+    .portal-btn {
+      padding: 12px 10px;
+      border: none;
+      border-radius: 9px;
+      font-weight: 800;
+      font-size: 0.92rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      color: #5a6b7c;
+      background: transparent;
+      transition: 0.25s;
+    }
+
+    .portal-btn.active-ta {
+      background: var(--sanaa-emerald);
+      color: var(--white);
+      box-shadow: 0 4px 12px rgba(11, 122, 75, 0.25);
+    }
+
+    .portal-btn.active-admin {
+      background: var(--sanaa-navy);
+      color: var(--white);
+      box-shadow: 0 4px 12px rgba(20, 40, 75, 0.28);
+    }
+
+    .portal-header-badge {
+      padding: 10px 14px;
+      border-radius: 10px;
+      margin-bottom: 18px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .badge-ta-mode {
+      background: #e8f6f0;
+      color: var(--sanaa-emerald-dark);
+      border-right: 4px solid var(--sanaa-emerald);
+    }
+
+    .badge-admin-mode {
+      background: var(--sanaa-gold-light);
+      color: var(--sanaa-navy);
+      border-right: 4px solid var(--sanaa-gold);
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: 800;
+      margin-bottom: 6px;
+      font-size: 0.9rem;
+      color: var(--sanaa-navy);
+    }
+
+    .input-icon-wrap {
+      position: relative;
+    }
+
+    .input-icon-wrap i {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #7f8fa6;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1.5px solid var(--border-color);
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      transition: 0.2s;
+      background: #fbfdff;
+    }
+
+    .input-icon-wrap .form-control {
+      padding-right: 40px;
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--sanaa-emerald);
+      background: var(--white);
+      box-shadow: 0 0 0 3px rgba(11, 122, 75, 0.12);
+    }
+
+    /* الأزرار */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 11px 20px;
+      border-radius: 10px;
+      font-weight: 800;
+      font-size: 0.94rem;
+      border: none;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .btn:hover { transform: translateY(-1px); opacity: 0.95; }
+
+    .btn-emerald {
+      background: linear-gradient(135deg, var(--sanaa-emerald), var(--sanaa-emerald-dark));
+      color: var(--white);
+    }
+
+    .btn-navy {
+      background: linear-gradient(135deg, var(--sanaa-navy), #223c6b);
+      color: var(--white);
+    }
+
+    .btn-gold {
+      background: linear-gradient(135deg, var(--sanaa-gold), #b0852b);
+      color: var(--white);
+    }
+
+    .btn-crimson {
+      background: var(--sanaa-crimson);
+      color: var(--white);
+    }
+
+    .btn-outline {
+      background: var(--white);
+      border: 1.5px solid var(--sanaa-navy);
+      color: var(--sanaa-navy);
+    }
+
+    /* بطاقات الإحصائيات السريعة في واجهة المسؤول */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+
+    .stat-card {
+      background: var(--white);
+      border-radius: 14px;
+      padding: 18px 20px;
+      box-shadow: var(--shadow-soft);
+      border-right: 5px solid var(--sanaa-emerald);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .stat-card.gold { border-right-color: var(--sanaa-gold); }
+    .stat-card.navy { border-right-color: var(--sanaa-navy); }
+    .stat-card.crimson { border-right-color: var(--sanaa-crimson); }
+
+    .stat-info h4 {
+      font-size: 0.85rem;
+      color: #64748b;
+      font-weight: 700;
+    }
+
+    .stat-info .stat-num {
+      font-size: 1.65rem;
+      font-weight: 900;
+      color: var(--sanaa-navy);
+      margin-top: 2px;
+    }
+
+    .stat-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: #f0f7f4;
+      color: var(--sanaa-emerald);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+    }
+
+    /* شريط ترويسة الكشف المطابق لملف الإكسل */
+    .excel-ribbon {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      background: var(--excel-peach);
+      border: 2px solid var(--sanaa-navy);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 18px;
+    }
+
+    .ribbon-cell {
+      padding: 10px;
+      text-align: center;
+      border-left: 1.5px solid var(--sanaa-navy);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .ribbon-cell:last-child { border-left: none; }
+    .ribbon-label { font-size: 0.78rem; font-weight: 700; color: #4a2c11; }
+    .ribbon-value { font-size: 1.02rem; font-weight: 900; color: #000; }
+
+    /* البطاقات والأقسام */
+    .panel-card {
+      background: var(--white);
+      border-radius: 14px;
+      padding: 22px;
+      margin-bottom: 22px;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid #e5ecf3;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding-bottom: 14px;
+      margin-bottom: 18px;
+      border-bottom: 2px solid #f0f4f8;
+    }
+
+    .panel-title {
+      font-size: 1.12rem;
+      font-weight: 900;
+      color: var(--sanaa-navy);
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .filters-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(195px, 1fr));
+      gap: 14px;
+      align-items: end;
+    }
+
+    /* مصفوفة اختيار المجموعات التفاعلية (مثل رسم الـ PDF صفحة 2) */
+    .checkbox-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .check-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #fff;
+      border: 1.5px solid var(--border-color);
+      padding: 5px 12px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 800;
+      cursor: pointer;
+      user-select: none;
+      transition: 0.15s;
+    }
+
+    .check-pill input:checked + span {
+      color: var(--sanaa-emerald);
+    }
+
+    .check-pill:has(input:checked) {
+      border-color: var(--sanaa-emerald);
+      background: #eaf7f1;
+    }
+
+    /* الجداول */
+    .table-responsive {
+      overflow-x: auto;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--white);
+    }
+
+    th {
+      background: var(--sanaa-navy);
+      color: var(--white);
+      padding: 12px 10px;
+      font-weight: 800;
+      font-size: 0.88rem;
+      text-align: center;
+      white-space: nowrap;
+      border-bottom: 3px solid var(--sanaa-gold);
+    }
+
+    td {
+      padding: 10px;
+      border-bottom: 1px solid #edf2f7;
+      text-align: center;
+      font-size: 0.92rem;
+      font-weight: 700;
+    }
+
+    tr:nth-child(even) { background-color: #f9fbfd; }
+    tr:hover { background-color: #eef6f3; }
+
+    .grade-input {
+      width: 95px;
+      padding: 8px;
+      text-align: center;
+      font-size: 1.05rem;
+      font-weight: 900;
+      border: 2px solid #b8c6d8;
+      border-radius: 8px;
+    }
+
+    .grade-input:focus {
+      outline: none;
+      border-color: var(--sanaa-emerald);
+      background: #f0fdf7;
+    }
+
+    .grade-input:disabled {
+      background: #e9ecef;
+      color: #495057;
+      cursor: not-allowed;
+    }
+
+    /* شريط حالة المجموعة */
+    .status-banner {
+      padding: 12px 16px;
+      border-radius: 10px;
+      margin-bottom: 16px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .status-open { background: #dff5ea; border: 1.5px solid #a8e0c5; color: var(--sanaa-emerald-dark); }
+    .status-locked { background: #fde8e8; border: 1.5px solid #f5b5b8; color: var(--sanaa-crimson); }
+
+    /* شريط تنقل لوحة تحكم المسؤول */
+    .admin-nav {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+      background: var(--white);
+      padding: 10px;
+      border-radius: 12px;
+      box-shadow: var(--shadow-soft);
+      border-top: 3px solid var(--sanaa-gold);
+    }
+
+    .admin-tab-btn {
+      padding: 10px 16px;
+      border-radius: 9px;
+      border: none;
+      background: transparent;
+      font-weight: 800;
+      font-size: 0.9rem;
+      color: #475569;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: 0.2s;
+    }
+
+    .admin-tab-btn.active {
+      background: var(--sanaa-navy);
+      color: var(--white);
+      box-shadow: 0 4px 10px rgba(20, 40, 75, 0.2);
+    }
+
+    .hidden { display: none !important; }
+
+    footer {
+      text-align: center;
+      padding: 16px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #5a6b7c;
+      border-top: 2px solid var(--sanaa-gold);
+      background: var(--white);
+      margin-top: 30px;
+    }
+
+    @media print {
+      .no-print { display: none !important; }
+      body { background: #fff; }
+      .panel-card { box-shadow: none; border: none; padding: 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ================= الترويسة الرسمية بشعار الكلية ================= -->
+  <header class="official-header">
+    <div class="header-container">
+      <div class="brand-box">
+        <div class="logo-frame" title="انقر لتغيير أو تثبيت صورة الشعار" onclick="document.getElementById('logoUploadInput').click()">
+          <img id="headerLogoImg" src="uvcolleg.png" alt="شعار الكلية" onerror="this.src='https://placehold.co/120x120/0b7a4b/ffffff?text=Sanaa+Med'">
+        </div>
+        <input type="file" id="logoUploadInput" accept="image/*" style="display:none;" onchange="handleCustomLogoUpload(event)">
+        <div class="brand-titles">
+          <h1>جامعة صنعاء - كلية الطب والعلوم الصحية</h1>
+          <h2>منظومة رصد درجات النشاط والمشاركة المعملية (نظام البلوكات)</h2>
+          <p>الحكمة يمانية — بوابة الرصد الموحد للمعامل والأقسام الأكاديمية</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <div class="block-pill">
+          <i class="fa-solid fa-heart-pulse" style="color:var(--sanaa-gold);"></i>
+          <span id="headerBlockName">بلك الجهاز القلبي</span>
+        </div>
+        <div id="activeUserBadge" class="user-session-badge hidden no-print">
+          <i class="fa-solid fa-user-check"></i>
+          <span id="activeUserName"></span>
+        </div>
+        <button id="logoutBtn" class="btn btn-crimson hidden no-print" onclick="logout()" style="padding:7px 14px; font-size:0.84rem;">
+          <i class="fa-solid fa-power-off"></i> تسجيل الخروج
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-container">
+
+    <!-- ================= 1. شاشة تسجيل الدخول (واجهة المعيد + واجهة المسؤول) ================= -->
+    <section id="loginSection">
+      <div class="auth-wrapper">
+        
+        <!-- القسم الأيمن: الهوية البصرية للشعار المرفق -->
+        <div class="auth-hero">
+          <img id="heroLogoImg" class="auth-hero-logo" src="uvcolleg.png" alt="شعار كلية الطب جامعة صنعاء" onerror="this.src='https://placehold.co/150x150/0b7a4b/ffffff?text=Sanaa+Med'">
+          <h2>كلية الطب والعلوم الصحية</h2>
+          <h3>جامعة صنعاء</h3>
+          <p>
+            منظومة إلكترونية متكاملة لربط المعيدين ومسؤول النظام، تضمن دقة وسرعة رصد درجات النشاط المعملي وحفظ الكشوفات الرسمية بصيغة PDF و Excel دون أي تعارض.
+          </p>
+        </div>
+
+        <!-- القسم الأيسر: التبديل بين بوابة المعيد وبوابة المسؤول -->
+        <div class="auth-form-side">
+          <div class="portal-switcher">
+            <button type="button" id="switchTaBtn" class="portal-btn active-ta" onclick="selectPortalMode('ta')">
+              <i class="fa-solid fa-microscope"></i> بوابة المعيد
+            </button>
+            <button type="button" id="switchAdminBtn" class="portal-btn" onclick="selectPortalMode('admin')">
+              <i class="fa-solid fa-user-shield"></i> بوابة مسؤول التطبيق
+            </button>
+          </div>
+
+          <div id="portalModeBanner" class="portal-header-badge badge-ta-mode">
+            <i class="fa-solid fa-user-doctor fa-lg"></i>
+            <span>تسجيل دخول المعيدين لرصد درجات المجموعات المخصصة لهم</span>
+          </div>
+
+          <div class="form-group">
+            <label id="loginUsernameLabel">اسم المعيد</label>
+            <div class="input-icon-wrap">
+              <i class="fa-solid fa-user"></i>
+              <input type="text" id="loginUsername" class="form-control" placeholder="أدخل اسم المعيد (مثال: حليمة أو الأصبحي)">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label id="loginPasswordLabel">كلمة السر الخاصة بالمعيد</label>
+            <div class="input-icon-wrap">
+              <i class="fa-solid fa-key"></i>
+              <input type="password" id="loginPassword" class="form-control" placeholder="أدخل كلمة السر" onkeydown="if(event.key==='Enter') handleLoginSubmit()">
+            </div>
+          </div>
+
+          <button id="loginSubmitBtn" class="btn btn-emerald" style="width:100%; margin-top:6px; padding:13px;" onclick="handleLoginSubmit()">
+            <i class="fa-solid fa-right-to-bracket"></i> الدخول إلى بوابة الرصد
+          </button>
+
+          <!-- صندوق بيانات التجربة السريعة -->
+          <div style="margin-top:20px; padding:12px 14px; background:#f8fafc; border-radius:10px; font-size:0.81rem; border:1px dashed #cbd5e1; line-height:1.7;">
+            <strong style="color:var(--sanaa-navy);"><i class="fa-solid fa-key" style="color:var(--sanaa-gold);"></i> بيانات الدخول الافتراضية للتجربة:</strong><br>
+            • <b>واجهة مسؤول التطبيق:</b> اسم المستخدم: <code>admin</code> | كلمة السر: <code>123456</code><br>
+            • <b>واجهة المعيد (أنسجة):</b> الاسم: <code>حليمة</code> | كلمة السر: <code>1111</code><br>
+            • <b>واجهة المعيد (تشريح):</b> الاسم: <code>الأصبحي</code> | كلمة السر: <code>2222</code>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ================= 2. واجهة مسؤول التطبيق الشاملة (Admin Portal) ================= -->
+    <section id="adminPortalSection" class="hidden">
+      
+      <!-- بطاقات ملخص النظام للمسؤول -->
+      <div class="stats-grid no-print">
+        <div class="stat-card">
+          <div class="stat-info">
+            <h4>البلك الدراسي الفعال</h4>
+            <div class="stat-num" id="statBlockName" style="font-size:1.1rem;">بلك الجهاز القلبي</div>
+          </div>
+          <div class="stat-icon"><i class="fa-solid fa-heart-pulse"></i></div>
+        </div>
+        <div class="stat-card gold">
+          <div class="stat-info">
+            <h4>الدرجة القصوى للنشاط</h4>
+            <div class="stat-num" id="statMaxGrade">10</div>
+          </div>
+          <div class="stat-icon" style="color:var(--sanaa-gold); background:#fdf8ec;"><i class="fa-solid fa-scale-balanced"></i></div>
+        </div>
+        <div class="stat-card navy">
+          <div class="stat-info">
+            <h4>عدد المعيدين المسجلين</h4>
+            <div class="stat-num" id="statTAsCount">0</div>
+          </div>
+          <div class="stat-icon" style="color:var(--sanaa-navy); background:#edf2f9;"><i class="fa-solid fa-user-doctor"></i></div>
+        </div>
+        <div class="stat-card crimson">
+          <div class="stat-info">
+            <h4>إجمالي الطلاب / المجموعات المعتمدة</h4>
+            <div class="stat-num"><span id="statStudentsCount">0</span> <small style="font-size:0.85rem; color:var(--sanaa-emerald);">(<span id="statLocksCount">0</span> مقفلة)</small></div>
+          </div>
+          <div class="stat-icon" style="color:var(--sanaa-crimson); background:#fdf0f0;"><i class="fa-solid fa-file-shield"></i></div>
+        </div>
+      </div>
+
+      <!-- شريط تبويبات صلاحيات المسؤول الـ 6 -->
+      <div class="admin-nav no-print">
+        <button class="admin-tab-btn active" onclick="openAdminTab('admPaneConfig', this)">
+          <i class="fa-solid fa-Sliders"></i> 1. إعدادات البلك وبيانات دخول المسؤول
+        </button>
+        <button class="admin-tab-btn" onclick="openAdminTab('admPaneTAs', this)">
+          <i class="fa-solid fa-users-gear"></i> 2. إدارة المعيدين والمعامل والمجموعات
+        </button>
+        <button class="admin-tab-btn" onclick="openAdminTab('admPaneStudents', this)">
+          <i class="fa-solid fa-file-import"></i> 3. استيراد كشوفات الطلاب (Excel)
+        </button>
+        <button class="admin-tab-btn" onclick="openAdminTab('admPaneReports', this)">
+          <i class="fa-solid fa-chart-column"></i> 4. تقارير الإكسل المفلترة وإدارة الأقفال
+        </button>
+      </div>
+
+      <!-- لوحة (1): إعدادات البلك والدرجة القصوى واسم وكلمة سر المسؤول -->
+      <div id="admPaneConfig" class="panel-card adm-pane">
+        <div class="panel-header">
+          <div class="panel-title">
+            <i class="fa-solid fa-user-shield" style="color:var(--sanaa-emerald);"></i>
+            صلاحيات المسؤول: ضبط اسم البلك، الدرجة القصوى، وبيانات دخول المسؤول
+          </div>
+        </div>
+
+        <div class="filters-grid" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); margin-bottom:18px;">
+          <div class="form-group">
+            <label>(1) اسم البلك الدراسي (يظهر في صفحات جميع المعيدين)</label>
+            <input type="text" id="cfgBlockName" class="form-control" placeholder="مثال: بلك الجهاز القلبي">
+          </div>
+          <div class="form-group">
+            <label>(4) أعلى قيمة لدرجة النشاط (يمنع المعيد من تجاوزها)</label>
+            <input type="number" id="cfgMaxGrade" class="form-control" min="1" max="100">
+          </div>
+          <div class="form-group">
+            <label>اسم مستخدم مسؤول التطبيق (Admin Username)</label>
+            <input type="text" id="cfgAdminUser" class="form-control" placeholder="admin">
+          </div>
+          <div class="form-group">
+            <label>كلمة سر مسؤول التطبيق (Admin Password)</label>
+            <input type="text" id="cfgAdminPass" class="form-control" placeholder="كلمة سر المسؤول">
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom:18px;">
+          <label><i class="fa-solid fa-cloud"></i> رابط Google Apps Script Web App (للمزامنة السحابية مع Google Sheets)</label>
+          <input type="url" id="cfgGasUrl" class="form-control" placeholder="https://script.google.com/macros/s/......./exec">
+        </div>
+
+        <div style="display:flex; gap:12px; flex-wrap:wrap;">
+          <button class="btn btn-emerald" onclick="saveAdminConfiguration()">
+            <i class="fa-solid fa-floppy-disk"></i> حفظ وتحديث إعدادات النظام وبيانات المسؤول
+          </button>
+          <button class="btn btn-outline" onclick="document.getElementById('logoUploadInput').click()">
+            <i class="fa-solid fa-image"></i> تثبيت صورة شعار الكلية (uvcolleg.png) داخل الذاكرة
+          </button>
+        </div>
+      </div>
+
+      <!-- لوحة (2): إدارة المعيدين وتوزيع المجموعات (مطابقة لجدول الصفحة 2 في الـ PDF) -->
+      <div id="admPaneTAs" class="panel-card adm-pane hidden">
+        <div class="panel-header">
+          <div class="panel-title">
+            <i class="fa-solid fa-chalkboard-user" style="color:var(--sanaa-emerald);"></i>
+            (2 & 3) جدول إعداد المعيدين وكلمات السر والمعامل والمجموعات الخاصة بكل معيد
+          </div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="btn btn-outline" onclick="downloadTAsExcelTemplate()">
+              <i class="fa-solid fa-download"></i> تحميل قالب إكسل المعيدين
+            </button>
+            <label class="btn btn-gold" style="cursor:pointer;">
+              <i class="fa-solid fa-file-excel"></i> استيراد المعيدين عبر ملف Excel
+              <input type="file" accept=".xlsx,.xls" style="display:none;" onchange="importTAsExcel(event)">
+            </label>
+          </div>
+        </div>
+
+        <!-- استمارة إضافة معيد بتصميم مطابق للجدول المرسوم في الـ PDF -->
+        <div style="background:#f8fbf9; border:1.5px solid #cde5d8; border-radius:12px; padding:18px; margin-bottom:20px;">
+          <div class="filters-grid" style="margin-bottom:14px;">
+            <div>
+              <label style="font-size:0.84rem; font-weight:800;">اسم المعيد</label>
+              <input type="text" id="taFormName" class="form-control" placeholder="مثال: حليمة / الأصبحي">
+            </div>
+            <div>
+              <label style="font-size:0.84rem; font-weight:800;">كلمة السر للمعيد</label>
+              <input type="text" id="taFormPass" class="form-control" placeholder="مثال: 1111">
+            </div>
+            <div>
+              <label style="font-size:0.84rem; font-weight:800;">رقم هاتف المعيد</label>
+              <input type="text" id="taFormPhone" class="form-control" placeholder="77xxxxxxx">
+            </div>
+            <div>
+              <label style="font-size:0.84rem; font-weight:800;">المعمل</label>
+              <input type="text" id="taFormLab" class="form-control" list="labsListSuggestions" placeholder="أنسجة / تشريح / فسيولوجي...">
+              <datalist id="labsListSuggestions">
+                <option value="أنسجة">
+                <option value="تشريح">
+                <option value="باثولوجي">
+                <option value="فسيولوجي">
+                <option value="كيمياء حيوية">
+                <option value="ميكروبيولوجي">
+              </datalist>
+            </div>
+            <div>
+              <label style="font-size:0.84rem; font-weight:800;">المستوى الدراسي</label>
+              <select id="taFormLevel" class="form-control">
+                <option value="المستوى الثاني">المستوى الثاني</option>
+                <option value="المستوى الثالث">المستوى الثالث</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- اختيار النوع والمجموعات بمربعات الاختيار كما في ملف الـ PDF -->
+          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:16px; align-items:center; padding-top:10px; border-top:1px dashed #c0d8cc;">
+            <div>
+              <label style="font-size:0.84rem; font-weight:800;">النوع المسموح للمعيد:</label>
+              <div class="checkbox-pills" id="taGenderChecks">
+                <label class="check-pill"><input type="checkbox" value="طلاب" checked> <span>طلاب</span></label>
+                <label class="check-pill"><input type="checkbox" value="طالبات" checked> <span>طالبات</span></label>
+              </div>
+            </div>
+
+            <div>
+              <label style="font-size:0.84rem; font-weight:800;">المجموعات الخاصة بالمعيد (اختر أو أضف):</label>
+              <div class="checkbox-pills" id="taGroupChecks">
+                <label class="check-pill"><input type="checkbox" value="1" checked> <span>1</span></label>
+                <label class="check-pill"><input type="checkbox" value="2" checked> <span>2</span></label>
+                <label class="check-pill"><input type="checkbox" value="3" checked> <span>3</span></label>
+                <label class="check-pill"><input type="checkbox" value="4"> <span>4</span></label>
+                <label class="check-pill"><input type="checkbox" value="5"> <span>5</span></label>
+                <label class="check-pill"><input type="checkbox" value="6"> <span>6</span></label>
+                <label class="check-pill"><input type="checkbox" value="7"> <span>7</span></label>
+                <label class="check-pill"><input type="checkbox" value="A"> <span>A</span></label>
+                <label class="check-pill"><input type="checkbox" value="B"> <span>B</span></label>
+              </div>
+            </div>
+
+            <div>
+              <label style="font-size:0.84rem; font-weight:800;">أو كتابة مجموعات إضافية (مفصولة بفاصلة):</label>
+              <div style="display:flex; gap:8px;">
+                <input type="text" id="taFormCustomGroups" class="form-control" placeholder="مثال: 8,9,C">
+                <button class="btn btn-emerald" onclick="addKARecord()" style="white-space:nowrap;">
+                  <i class="fa-solid fa-plus"></i> حفظ المعيد
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- جدول المعيدين الحاليين -->
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>المعمل</th>
+                <th>اسم المعيد</th>
+                <th>كلمة السر</th>
+                <th>رقم الهاتف (واتساب)</th>
+                <th>المستوى الدراسي</th>
+                <th>النوع (طلاب/طالبات)</th>
+                <th>المجموعات الخاصة بالمعيد</th>
+                <th>حذف</th>
+              </tr>
+            </thead>
+            <tbody id="admTAsTbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- لوحة (3): استيراد ملف الطلاب (البند 5 في الـ PDF) -->
+      <div id="admPaneStudents" class="panel-card adm-pane hidden">
+        <div class="panel-header">
+          <div class="panel-title">
+            <i class="fa-solid fa-user-graduate" style="color:var(--sanaa-emerald);"></i>
+            (5) استيراد ملف الطلاب وتحديد (اسم البلك - المستوى - رقم الدفعة)
+          </div>
+          <button class="btn btn-outline" onclick="downloadStudentsExcelTemplate()">
+            <i class="fa-solid fa-download"></i> تحميل قالب إكسل الطلاب المطلوب
+          </button>
+        </div>
+
+        <div style="background:var(--sanaa-gold-light); border-right:4px solid var(--sanaa-gold); padding:12px 16px; border-radius:8px; margin-bottom:18px; font-size:0.9rem; font-weight:700;">
+          وفقاً لمتطلبات النظام: يقوم المسؤول أولاً بتحديد <b>(اسم البلك، المستوى الدراسي، ورقم الدفعة)</b> بالأسفل، ثم يرفع ملف الإكسل المحتوي على الأعمدة: <code>الرقم الاكاديمي</code> | <code>النوع</code> | <code>اسم الطالب</code> | <code>المجموعة</code>.
+        </div>
+
+        <div class="filters-grid" style="margin-bottom:20px;">
+          <div>
+            <label style="font-weight:800; font-size:0.86rem;">1. اسم البلك</label>
+            <input type="text" id="impStuBlock" class="form-control">
+          </div>
+          <div>
+            <label style="font-weight:800; font-size:0.86rem;">2. المستوى الدراسي</label>
+            <select id="impStuLevel" class="form-control">
+              <option value="المستوى الثاني">المستوى الثاني</option>
+              <option value="المستوى الثالث">المستوى الثالث</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-weight:800; font-size:0.86rem;">3. رقم الدفعة</label>
+            <input type="text" id="impStuBatch" class="form-control" value="43" placeholder="مثال: 43">
+          </div>
+          <div>
+            <label style="font-weight:800; font-size:0.86rem;">4. ملف الإكسل للطلاب (.xlsx)</label>
+            <input type="file" id="impStuFile" accept=".xlsx,.xls" class="form-control">
+          </div>
+        </div>
+
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn btn-emerald" onclick="importStudentsFromExcel()">
+            <i class="fa-solid fa-file-arrow-up"></i> استيراد وإدراج الطلاب في النظام
+          </button>
+          <button class="btn btn-crimson" onclick="clearAllStudentsPrompt()">
+            <i class="fa-solid fa-trash-can"></i> مسح قائمة الطلاب الحالية لبدء بلك جديد
+          </button>
+        </div>
+      </div>
+
+      <!-- لوحة (4): التقارير المفلترة وإدارة الأقفال (البند 6 في الـ PDF) -->
+      <div id="admPaneReports" class="panel-card adm-pane hidden">
+        <div class="panel-header">
+          <div class="panel-title">
+            <i class="fa-solid fa-file-excel" style="color:var(--sanaa-emerald);"></i>
+            (6) تقارير الإكسل المفلترة: (حسب المستوى $\leftarrow$ المعمل $\leftarrow$ المعيد $\leftarrow$ النوع $\leftarrow$ المجموعة)
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button class="btn btn-emerald" onclick="exportAdminReportToExcel()">
+              <i class="fa-solid fa-file-excel"></i> تصدير التقرير المفلتر إلى Excel
+            </button>
+          </div>
+        </div>
+
+        <!-- الفلاتر الخمسة المتسلسلة كما وردت في البند (6) -->
+        <div class="filters-grid" style="margin-bottom:22px; background:#f8fafc; padding:15px; border-radius:10px; border:1px solid #e2e8f0;">
+          <div>
+            <label style="font-weight:800; font-size:0.84rem;">أولاً: المستوى الدراسي</label>
+            <select id="fltLevel" class="form-control" onchange="renderAdminReportsAndLocks()">
+              <option value="ALL">الكل</option>
+              <option value="المستوى الثاني">المستوى الثاني</option>
+              <option value="المستوى الثالث">المستوى الثالث</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-weight:800; font-size:0.84rem;">ثانياً: المعمل</label>
+            <select id="fltLab" class="form-control" onchange="renderAdminReportsAndLocks()">
+              <option value="ALL">الكل</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-weight:800; font-size:0.84rem;">ثالثاً: اسم المعيد</label>
+            <select id="fltTA" class="form-control" onchange="renderAdminReportsAndLocks()">
+              <option value="ALL">الكل</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-weight:800; font-size:0.84rem;">رابعاً: النوع (طلاب / طالبات)</label>
+            <select id="fltGender" class="form-control" onchange="renderAdminReportsAndLocks()">
+              <option value="ALL">الكل</option>
+              <option value="طلاب">طلاب</option>
+              <option value="طالبات">طالبات</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-weight:800; font-size:0.84rem;">خامساً: المجموعة</label>
+            <select id="fltGroup" class="form-control" onchange="renderAdminReportsAndLocks()">
+              <option value="ALL">الكل</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- جدول المجموعات المقفلة والمعتمدة -->
+        <h4 style="margin-bottom:10px; color:var(--sanaa-navy); font-weight:900;">
+          <i class="fa-solid fa-lock" style="color:var(--sanaa-gold);"></i> المجموعات التي تم اعتمادها وإقفالها (صلاحية المسؤول لفتح القفل عند الحاجة):
+        </h4>
+        <div class="table-responsive" style="margin-bottom:24px;">
+          <table>
+            <thead>
+              <tr>
+                <th>المعمل</th>
+                <th>اسم المعيد</th>
+                <th>المستوى</th>
+                <th>النوع</th>
+                <th>المجموعة</th>
+                <th>عدد الطلاب</th>
+                <th>وقت الاعتماد</th>
+                <th>إجراء المسؤول</th>
+              </tr>
+            </thead>
+            <tbody id="admLocksTbody"></tbody>
+          </table>
+        </div>
+
+        <!-- جدول التقرير الشامل -->
+        <h4 style="margin-bottom:10px; color:var(--sanaa-navy); font-weight:900;">
+          <i class="fa-solid fa-table-list" style="color:var(--sanaa-emerald);"></i> معاينة كشف الدرجات المفلتر:
+        </h4>
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>م</th>
+                <th>الرقم الأكاديمي</th>
+                <th>اسم الطالب / الطالبة</th>
+                <th>النوع</th>
+                <th>المستوى</th>
+                <th>الدفعة</th>
+                <th>المجموعة</th>
+                <th>المعمل</th>
+                <th>درجة النشاط</th>
+                <th>المعيد الراصد</th>
+              </tr>
+            </thead>
+            <tbody id="admReportTbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ================= 3. واجهة المعيد لرصد الدرجات (TA Portal) ================= -->
+    <section id="taPortalSection" class="hidden">
+      
+      <!-- شريط القوائم المنسدلة الديناميكية الخاصة بالمعيد فقط -->
+      <div class="panel-card no-print">
+        <div class="panel-header">
+          <div class="panel-title">
+            <i class="fa-solid fa-filter" style="color:var(--sanaa-emerald);"></i>
+            القوائم الديناميكية للمجموعات المخصصة للمعيد: أ. <span id="taPortalName" style="color:var(--sanaa-emerald);"></span>
+          </div>
+          <div style="font-weight:800; font-size:0.9rem;">
+            الحد الأقصى للدرجة المسموح رصدها: <span id="taMaxAllowedBadge" style="background:var(--sanaa-crimson); color:#fff; padding:3px 12px; border-radius:20px;">10</span>
+          </div>
+        </div>
+
+        <div class="filters-grid">
+          <div>
+            <label style="font-weight:800; font-size:0.85rem;">المعمل</label>
+            <select id="taSelLab" class="form-control" onchange="onTaLabSelect()"></select>
+          </div>
+          <div>
+            <label style="font-weight:800; font-size:0.85rem;">المستوى الدراسي</label>
+            <select id="taSelLevel" class="form-control" onchange="onTaLevelSelect()"></select>
+          </div>
+          <div>
+            <label style="font-weight:800; font-size:0.85rem;">النوع (طلاب / طالبات)</label>
+            <select id="taSelGender" class="form-control" onchange="renderTaGradingTable()"></select>
+          </div>
+          <div>
+            <label style="font-weight:800; font-size:0.85rem;">رقم المجموعة المسموحة</label>
+            <select id="taSelGroup" class="form-control" onchange="renderTaGradingTable()"></select>
+          </div>
+        </div>
+      </div>
+
+      <!-- منطقة الكشف الرسمي القابلة للحفظ كـ PDF -->
+      <div id="taPrintableArea" class="panel-card">
+        
+        <!-- ترويسة رسمية تظهر داخل ملف الـ PDF -->
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:3px solid var(--sanaa-gold); padding-bottom:12px; margin-bottom:16px;">
+          <div style="line-height:1.6;">
+            <h3 style="color:var(--sanaa-navy); font-weight:900;">الجمهورية اليمنية - جامعة صنعاء</h3>
+            <h4 style="color:var(--sanaa-emerald); font-weight:800;">كلية الطب والعلوم الصحية</h4>
+            <p style="font-size:0.85rem; font-weight:700;" id="pdfBlockSubtitle">كشف رصد درجات النشاط والمشاركة المعملية</p>
+          </div>
+          <img id="pdfLogoImg" src="uvcolleg.png" alt="شعار الكلية" style="width:70px; height:70px; object-fit:contain;" onerror="this.style.display='none'">
+        </div>
+
+        <!-- الشريط البرتقالي/البيج المطابق لملف الإكسل المرفق -->
+        <div class="excel-ribbon">
+          <div class="ribbon-cell">
+            <span class="ribbon-label">المعمل</span>
+            <span class="ribbon-value" id="rValLab">-</span>
+          </div>
+          <div class="ribbon-cell">
+            <span class="ribbon-label">اسم المعيد</span>
+            <span class="ribbon-value" id="rValTA">-</span>
+          </div>
+          <div class="ribbon-cell">
+            <span class="ribbon-label">المستوى</span>
+            <span class="ribbon-value" id="rValLevel">-</span>
+          </div>
+          <div class="ribbon-cell">
+            <span class="ribbon-label">النوع</span>
+            <span class="ribbon-value" id="rValGender">-</span>
+          </div>
+          <div class="ribbon-cell">
+            <span class="ribbon-label">المجموعة</span>
+            <span class="ribbon-value" id="rValGroup">-</span>
+          </div>
+          <div class="ribbon-cell">
+            <span class="ribbon-label">الدفعة</span>
+            <span class="ribbon-value" id="rValBatch">43</span>
+          </div>
+          <div class="ribbon-cell">
+            <span class="ribbon-label">عدد الطلاب في المجموعة</span>
+            <span class="ribbon-value" id="rValCount">0</span>
+          </div>
+        </div>
+
+        <!-- حالة المجموعة (مفتوحة للرصد أم مقفلة بعد الإرسال) -->
+        <div id="taLockBanner" class="status-banner status-open">
+          <span id="taLockStatusText"></span>
+          <span id="taLockTimeText" style="font-size:0.85rem;"></span>
+        </div>
+
+        <!-- جدول رصد الدرجات -->
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:65px;">المسلسل</th>
+                <th style="width:160px;">الرقم الأكاديمي</th>
+                <th style="text-align:right; padding-right:18px;">اسم الطالب / الطالبة</th>
+                <th style="width:110px;">النوع</th>
+                <th style="width:140px;">المستوى الدراسي</th>
+                <th style="width:185px;">درجة النشاط (من <span id="thMaxGradeVal">10</span>)</th>
+              </tr>
+            </thead>
+            <tbody id="taGradingTbody"></tbody>
+          </table>
+        </div>
+
+        <!-- توقيع المعيد أسفل الكشف عند التصدير لـ PDF -->
+        <div style="display:flex; justify-content:space-between; margin-top:24px; padding-top:12px; border-top:1px dashed #cbd5e1; font-size:0.88rem; font-weight:800;">
+          <div>توقيع المعيد الراصد: ........................................</div>
+          <div>تاريخ الرصد: <span id="pdfPrintDate"></span></div>
+          <div>اعتماد مسؤول النظام: ........................................</div>
+        </div>
+
+        <!-- أزرار الإرسال وحفظ الـ PDF -->
+        <div class="no-print" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-top:22px;">
+          <button id="taSubmitBtn" class="btn btn-emerald" onclick="submitAndLockGroupGrades()">
+            <i class="fa-solid fa-paper-plane"></i> إرسال واعتماد درجات المجموعة (مع القفل التلقائي)
+          </button>
+
+          <button class="btn btn-navy" onclick="saveCurrentGroupAsPDF()">
+            <i class="fa-solid fa-file-pdf"></i> حفظ الكشف كملف PDF في الهاتف أو الكمبيوتر
+          </button>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="no-print">
+    كلية الطب والعلوم الصحية - جامعة صنعاء © منظومة رصد درجات النشاط والمشاركة المعملية
+  </footer>
+
+  <!-- ================= الكود البرمجي الشامل (JavaScript) ================= -->
+  <script>
+    const DB_STORAGE_KEY = 'SANAA_MED_ACTIVITY_SYSTEM_V2';
+    let loginMode = 'ta'; // 'ta' or 'admin'
+    let activeSession = null;
+
+    // البيانات الافتراضية المطابقة لملف الـ PDF
+    const initialDatabase = {
+      gasUrl: 'https://script.google.com/macros/s/AKfycbz7ziD73rJK8vNl6fsX21kgvAcAscp8D4CVvSeZLLF1WhwvGVhBeEpwrkFAJg3likgU/exec',
+      customLogoBase64: '',
+      settings: {
+        blockName: 'بلك الجهاز القلبي (Cardiovascular Block)',
+        maxGrade: 10,
+        adminUser: 'admin',
+        adminPass: '123456'
+      },
+      tas: [
+        { taName: 'حليمة', password: '1111', phone: '777111222', lab: 'أنسجة', level: 'المستوى الثاني', gender: 'طلاب,طالبات', groups: '1,2,3,4' },
+        { taName: 'الأصبحي', password: '2222', phone: '777333444', lab: 'تشريح', level: 'المستوى الثاني', gender: 'طلاب,طالبات', groups: '1,2,3,6,7,A' }
+      ],
+      students: [
+        { serial: 1, academicId: '20241001', name: 'أحمد محمد علي المتوكل', gender: 'طلاب', level: 'المستوى الثاني', batch: '43', group: '1', block: 'بلك الجهاز القلبي (Cardiovascular Block)' },
+        { serial: 2, academicId: '20241002', name: 'أسامة عبد الله يحيى الشامي', gender: 'طلاب', level: 'المستوى الثاني', batch: '43', group: '1', block: 'بلك الجهاز القلبي (Cardiovascular Block)' },
+        { serial: 3, academicId: '20241003', name: 'بدر الدين محمد صالح الحيمي', gender: 'طلاب', level: 'المستوى الثاني', batch: '43', group: '1', block: 'بلك الجهاز القلبي (Cardiovascular Block)' },
+        { serial: 4, academicId: '20241004', name: 'حمزة عبد الرحمن الكبسي', gender: 'طلاب', level: 'المستوى الثاني', batch: '43', group: '1', block: 'بلك الجهاز القلبي (Cardiovascular Block)' },
+        { serial: 5, academicId: '20241005', name: 'زيد علي حمود العنسي', gender: 'طلاب', level: 'المستوى الثاني', batch: '43', group: '2', block: 'بلك الجهاز القلبي (Cardiovascular Block)' },
+        { serial: 6, academicId: '20241006', name: 'طارق نبيل قاسم الأغبري', gender: 'طلاب', level: 'المستوى الثاني', batch: '43', group: '2', block: 'بلك الجهاز القلبي (Cardiovascular Block)' },
+        { serial: 7, academicId: '20242001', name: 'أروى محمد يحيى الوزير', gender: 'طالبات', level: 'المستوى الثاني', batch: '43', group: '1', block: 'بلك الجهاز القلبي (Cardiovascular Block)' },
+        { serial: 8, academicId: '20242002', name: 'بلقيس عبد الملك السوسوة', gender: 'طالبات', level: 'المستوى الثاني', batch: '43', group: '1', block: 'بلك الجهاز القلبي (Cardiovascular Block)' },
+        { serial: 9, academicId: '20242003', name: 'سمية أحمد علي الأكوع', gender: 'طالبات', level: 'المستوى الثاني', batch: '43', group: '2', block: 'بلك الجهاز القلبي (Cardiovascular Block)' }
+      ],
+      gradesMap: {},
+      locks: {}
+    };
+
+    function loadDB() {
+      const saved = localStorage.getItem(DB_STORAGE_KEY);
+      if (!saved) {
+        localStorage.setItem(DB_STORAGE_KEY, JSON.stringify(initialDatabase));
+        return JSON.parse(JSON.stringify(initialDatabase));
+      }
+      return JSON.parse(saved);
+    }
+
+    function saveDB(db) {
+      localStorage.setItem(DB_STORAGE_KEY, JSON.stringify(db));
+      refreshGlobalHeader();
+    }
+
+    function refreshGlobalHeader() {
+      const db = loadDB();
+      document.getElementById('headerBlockName').textContent = db.settings.blockName;
+      document.getElementById('pdfBlockSubtitle').textContent = `كشف درجات النشاط والمشاركة — ${db.settings.blockName}`;
+      if (db.customLogoBase64) {
+        document.getElementById('headerLogoImg').src = db.customLogoBase64;
+        document.getElementById('heroLogoImg').src = db.customLogoBase64;
+        document.getElementById('pdfLogoImg').src = db.customLogoBase64;
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      refreshGlobalHeader();
+      document.getElementById('pdfPrintDate').textContent = new Date().toLocaleDateString('ar-YE');
+    });
+
+    // رفع وتثبيت صورة الشعار uvcolleg.png كـ Base64
+    function handleCustomLogoUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const db = loadDB();
+        db.customLogoBase64 = e.target.result;
+        saveDB(db);
+        Swal.fire('تم تثبيت الشعار', 'تم حفظ شعار الكلية بنجاح ليظهر في جميع الواجهات وملفات الـ PDF', 'success');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // ================= التبديل بين بوابة المعيد وبوابة المسؤول =================
+    function selectPortalMode(mode) {
+      loginMode = mode;
+      const taBtn = document.getElementById('switchTaBtn');
+      const admBtn = document.getElementById('switchAdminBtn');
+      const banner = document.getElementById('portalModeBanner');
+      const userLabel = document.getElementById('loginUsernameLabel');
+      const passLabel = document.getElementById('loginPasswordLabel');
+      const userInput = document.getElementById('loginUsername');
+      const submitBtn = document.getElementById('loginSubmitBtn');
+
+      if (mode === 'ta') {
+        taBtn.className = 'portal-btn active-ta';
+        admBtn.className = 'portal-btn';
+        banner.className = 'portal-header-badge badge-ta-mode';
+        banner.innerHTML = `<i class="fa-solid fa-user-doctor fa-lg"></i><span>تسجيل دخول المعيدين لرصد درجات المجموعات المخصصة لهم</span>`;
+        userLabel.textContent = 'اسم المعيد';
+        passLabel.textContent = 'كلمة السر الخاصة بالمعيد';
+        userInput.placeholder = 'أدخل اسم المعيد (مثال: حليمة أو الأصبحي)';
+        submitBtn.className = 'btn btn-emerald';
+        submitBtn.innerHTML = `<i class="fa-solid fa-right-to-bracket"></i> الدخول إلى بوابة المعيد`;
+      } else {
+        taBtn.className = 'portal-btn';
+        admBtn.className = 'portal-btn active-admin';
+        banner.className = 'portal-header-badge badge-admin-mode';
+        banner.innerHTML = `<i class="fa-solid fa-user-shield fa-lg"></i><span>واجهة مسؤول التطبيق — إدارة البلك والمعيدين والطلاب والتقارير</span>`;
+        userLabel.textContent = 'اسم مستخدم المسؤول';
+        passLabel.textContent = 'كلمة سر المسؤول';
+        userInput.placeholder = 'أدخل اسم مستخدم المسؤول (admin)';
+        submitBtn.className = 'btn btn-navy';
+        submitBtn.innerHTML = `<i class="fa-solid fa-unlock-keyhole"></i> الدخول إلى لوحة تحكم المسؤول`;
+      }
+    }
+
+    // تنفيذ تسجيل الدخول
+    function handleLoginSubmit() {
+      const username = document.getElementById('loginUsername').value.trim();
+      const password = document.getElementById('loginPassword').value.trim();
+
+      if (!username || !password) {
+        Swal.fire('تنبيه', 'يرجى إدخال الاسم وكلمة السر أولاً', 'warning');
+        return;
+      }
+
+      const db = loadDB();
+
+      // 1. الدخول كمسؤول النظام
+      if (loginMode === 'admin') {
+        if (username === db.settings.adminUser && password === db.settings.adminPass) {
+          activeSession = { role: 'admin', name: 'مسؤول النظام (' + username + ')' };
+          showAuthenticatedView('admin');
+          Swal.fire({ icon: 'success', title: 'مرحباً بك في لوحة تحكم مسؤول التطبيق', timer: 1300, showConfirmButton: false });
+        } else {
+          Swal.fire('خطأ في بيانات المسؤول', 'اسم مستخدم المسؤول أو كلمة السر غير صحيحة', 'error');
+        }
+        return;
+      }
+
+      // 2. الدخول كمعيد
+      const matchingTAs = db.tas.filter(t => t.taName.trim() === username && String(t.password).trim() === password);
+      if (matchingTAs.length === 0) {
+        Swal.fire('تعذر الدخول', 'اسم المعيد أو كلمة السر غير صحيحة. يرجى التأكد من مسؤول النظام.', 'error');
+        return;
+      }
+
+      activeSession = {
+        role: 'ta',
+        taName: matchingTAs[0].taName,
+        assignments: matchingTAs
+      };
+      showAuthenticatedView('ta');
+    }
+
+    function showAuthenticatedView(role) {
+      document.getElementById('loginSection').classList.add('hidden');
+      document.getElementById('logoutBtn').classList.remove('hidden');
+      document.getElementById('activeUserBadge').classList.remove('hidden');
+
+      if (role === 'admin') {
+        document.getElementById('activeUserName').textContent = activeSession.name;
+        document.getElementById('adminPortalSection').classList.remove('hidden');
+        document.getElementById('taPortalSection').classList.add('hidden');
+        refreshAdminPortal();
+      } else {
+        document.getElementById('activeUserName').textContent = 'المعيد: أ. ' + activeSession.taName;
+        document.getElementById('taPortalSection').classList.remove('hidden');
+        document.getElementById('adminPortalSection').classList.add('hidden');
+        initTaPortalView();
+      }
+    }
+
+    function logout() {
+      activeSession = null;
+      document.getElementById('loginPassword').value = '';
+      document.getElementById('adminPortalSection').classList.add('hidden');
+      document.getElementById('taPortalSection').classList.add('hidden');
+      document.getElementById('logoutBtn').classList.add('hidden');
+      document.getElementById('activeUserBadge').classList.add('hidden');
+      document.getElementById('loginSection').classList.remove('hidden');
+    }
+
+    // ================= إدارة لوحة مسؤول التطبيق (Admin Dashboard) =================
+    function openAdminTab(paneId, btnEl) {
+      document.querySelectorAll('.adm-pane').forEach(p => p.classList.add('hidden'));
+      document.getElementById(paneId).classList.remove('hidden');
+      document.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.remove('active'));
+      btnEl.classList.add('active');
+      refreshAdminPortal();
+    }
+
+    function refreshAdminPortal() {
+      const db = loadDB();
+
+      // تحديث الإحصائيات العلوية
+      document.getElementById('statBlockName').textContent = db.settings.blockName;
+      document.getElementById('statMaxGrade').textContent = db.settings.maxGrade + ' درجات';
+      document.getElementById('statTAsCount').textContent = [...new Set(db.tas.map(t => t.taName))].length;
+      document.getElementById('statStudentsCount').textContent = db.students.length;
+      document.getElementById('statLocksCount').textContent = Object.keys(db.locks).length;
+
+      // تعبئة حقول الإعدادات
+      document.getElementById('cfgBlockName').value = db.settings.blockName;
+      document.getElementById('impStuBlock').value = db.settings.blockName;
+      document.getElementById('cfgMaxGrade').value = db.settings.maxGrade;
+      document.getElementById('cfgAdminUser').value = db.settings.adminUser;
+      document.getElementById('cfgAdminPass').value = db.settings.adminPass;
+      document.getElementById('cfgGasUrl').value = db.gasUrl || '';
+
+      renderAdminTAsList();
+      populateAdminReportFilters();
+      renderAdminReportsAndLocks();
+    }
+
+    function saveAdminConfiguration() {
+      const db = loadDB();
+      const newBlock = document.getElementById('cfgBlockName').value.trim();
+      const newMax = Number(document.getElementById('cfgMaxGrade').value);
+      const newAdmUser = document.getElementById('cfgAdminUser').value.trim();
+      const newAdmPass = document.getElementById('cfgAdminPass').value.trim();
+
+      if (!newBlock || !newMax || !newAdmUser || !newAdmPass) {
+        Swal.fire('تنبيه', 'يرجى التأكد من ملء اسم البلك والدرجة القصوى واسم وكلمة سر المسؤول', 'warning');
+        return;
+      }
+
+      db.settings.blockName = newBlock;
+      db.settings.maxGrade = newMax;
+      db.settings.adminUser = newAdmUser;
+      db.settings.adminPass = newAdmPass;
+      db.gasUrl = document.getElementById('cfgGasUrl').value.trim();
+
+      saveDB(db);
+      refreshAdminPortal();
+      Swal.fire('تم الحفظ بنجاح', 'تم تحديث إعدادات البلك والدرجة القصوى وبيانات دخول المسؤول', 'success');
+    }
+
+    // عرض وإضافة المعيدين
+    function renderAdminTAsList() {
+      const db = loadDB();
+      const tbody = document.getElementById('admTAsTbody');
+      tbody.innerHTML = db.tas.map((t, idx) => `
+        <tr>
+          <td style="color:var(--sanaa-emerald-dark); font-weight:900;">${t.lab}</td>
+          <td>${t.taName}</td>
+          <td><code>${t.password}</code></td>
+          <td>
+            <a href="https://wa.me/967${String(t.phone).replace(/^0+/, '')}" target="_blank" style="color:var(--sanaa-emerald); text-decoration:none;">
+              <i class="fa-brands fa-whatsapp"></i> ${t.phone || '-'}
+            </a>
+          </td>
+          <td>${t.level}</td>
+          <td>${t.gender}</td>
+          <td><span style="background:var(--sanaa-gold-light); padding:3px 10px; border-radius:6px; border:1px solid var(--sanaa-gold);">${t.groups}</span></td>
+          <td>
+            <button class="btn btn-crimson" style="padding:5px 10px; font-size:0.8rem;" onclick="removeTARecord(${idx})">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function addKARecord() {
+      const taName = document.getElementById('taFormName').value.trim();
+      const password = document.getElementById('taFormPass').value.trim();
+      const phone = document.getElementById('taFormPhone').value.trim();
+      const lab = document.getElementById('taFormLab').value.trim();
+      const level = document.getElementById('taFormLevel').value;
+
+      const selectedGenders = Array.from(document.querySelectorAll('#taGenderChecks input:checked')).map(c => c.value);
+      const selectedGroups = Array.from(document.querySelectorAll('#taGroupChecks input:checked')).map(c => c.value);
+      const customGroups = document.getElementById('taFormCustomGroups').value.split(',').map(s => s.trim()).filter(Boolean);
+      const allGroups = [...new Set([...selectedGroups, ...customGroups])];
+
+      if (!taName || !password || !lab || selectedGenders.length === 0 || allGroups.length === 0) {
+        Swal.fire('بيانات ناقصة', 'يرجى إدخال اسم المعيد وكلمة السر والمعمل واختيار النوع والمجموعات', 'warning');
+        return;
+      }
+
+      const db = loadDB();
+      db.tas.push({
+        taName,
+        password,
+        phone,
+        lab,
+        level,
+        gender: selectedGenders.join(','),
+        groups: allGroups.join(',')
+      });
+
+      saveDB(db);
+      renderAdminTAsList();
+      refreshAdminPortal();
+
+      document.getElementById('taFormName').value = '';
+      document.getElementById('taFormPass').value = '';
+      document.getElementById('taFormPhone').value = '';
+      document.getElementById('taFormCustomGroups').value = '';
+
+      Swal.fire('تمت الإضافة', `تم تخصيص المجموعات (${allGroups.join(', ')}) للمعيد (${taName}) بنجاح`, 'success');
+    }
+
+    function removeTARecord(idx) {
+      const db = loadDB();
+      db.tas.splice(idx, 1);
+      saveDB(db);
+      refreshAdminPortal();
+    }
+
+    function downloadTAsExcelTemplate() {
+      const rows = [
+        ['اسم المعيد', 'كلمة السر', 'رقم الهاتف', 'المعمل', 'المستوى', 'النوع', 'المجموعات'],
+        ['حليمة', '1111', '777111222', 'أنسجة', 'المستوى الثاني', 'طلاب,طالبات', '1,2,3,4'],
+        ['الأصبحي', '2222', '777333444', 'تشريح', 'المستوى الثاني', 'طلاب,طالبات', '1,2,3,6,7,A']
+      ];
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet(rows);
+      XLSX.utils.book_append_sheet(wb, ws, 'المعيدين');
+      XLSX.writeFile(wb, 'قالب_بيانات_المعيدين.xlsx');
+    }
+
+    function importTAsExcel(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const wb = XLSX.read(e.target.result, { type: 'binary' });
+        const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+        const db = loadDB();
+        json.forEach(r => {
+          if (r['اسم المعيد'] && r['المعمل']) {
+            db.tas.push({
+              taName: String(r['اسم المعيد']).trim(),
+              password: String(r['كلمة السر'] || '1234').trim(),
+              phone: String(r['رقم الهاتف'] || '').trim(),
+              lab: String(r['المعمل']).trim(),
+              level: String(r['المستوى'] || 'المستوى الثاني').trim(),
+              gender: String(r['النوع'] || 'طلاب,طالبات').trim(),
+              groups: String(r['المجموعات'] || '1').trim()
+            });
+          }
+        });
+        saveDB(db);
+        refreshAdminPortal();
+        Swal.fire('تم الاستيراد', `تم استيراد ${json.length} من المعيدين بنجاح`, 'success');
+      };
+      reader.readAsBinaryString(file);
+    }
+
+    // استيراد الطلاب عبر الإكسل
+    function downloadStudentsExcelTemplate() {
+      const rows = [
+        ['الرقم الاكاديمي', 'النوع', 'اسم الطالب', 'المجموعة'],
+        ['20241010', 'طلاب', 'أحمد محمد علي', '1'],
+        ['20242010', 'طالبات', 'فاطمة يحيى الشامي', '2']
+      ];
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet(rows);
+      XLSX.utils.book_append_sheet(wb, ws, 'الطلاب');
+      XLSX.writeFile(wb, 'قالب_استيراد_الطلاب.xlsx');
+    }
+
+    function importStudentsFromExcel() {
+      const block = document.getElementById('impStuBlock').value.trim();
+      const level = document.getElementById('impStuLevel').value;
+      const batch = document.getElementById('impStuBatch').value.trim();
+      const file = document.getElementById('impStuFile').files[0];
+
+      if (!block || !level || !batch || !file) {
+        Swal.fire('بيانات مطلوبة', 'يرجى إدخال (اسم البلك، المستوى، رقم الدفعة) واختيار ملف الإكسل أولاً', 'warning');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const wb = XLSX.read(e.target.result, { type: 'binary' });
+        const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+        const db = loadDB();
+        let count = 0;
+
+        rows.forEach(r => {
+          const id = r['الرقم الاكاديمي'] || r['الرقم الأكاديمي'];
+          const name = r['اسم الطالب'] || r['الاسم'];
+          const gender = r['النوع'] || 'طلاب';
+          const grp = r['المجموعة'];
+
+          if (id && name && grp) {
+            db.students.push({
+              serial: db.students.length + 1,
+              academicId: String(id).trim(),
+              name: String(name).trim(),
+              gender: String(gender).trim(),
+              level: level,
+              batch: batch,
+              group: String(grp).trim(),
+              block: block
+            });
+            count++;
+          }
+        });
+
+        saveDB(db);
+        refreshAdminPortal();
+        Swal.fire('نجاح الاستيراد', `تم استيراد ${count} طالب/طالبة في (${level} - دفعة ${batch})`, 'success');
+      };
+      reader.readAsBinaryString(file);
+    }
+
+    function clearAllStudentsPrompt() {
+      Swal.fire({
+        title: 'تأكيد مسح بيانات الطلاب؟',
+        text: 'سيتم تفريغ قائمة الطلاب والأقفال لبدء بلك دراسي جديد.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#b81d24',
+        confirmButtonText: 'نعم، مسح الكل',
+        cancelButtonText: 'إلغاء'
+      }).then(res => {
+        if (res.isConfirmed) {
+          const db = loadDB();
+          db.students = [];
+          db.gradesMap = {};
+          db.locks = {};
+          saveDB(db);
+          refreshAdminPortal();
+          Swal.fire('تم التفريغ', 'تم تفريغ قائمة الطلاب بنجاح', 'success');
+        }
+      });
+    }
+
+    // التقارير وإدارة الأقفال
+    function populateAdminReportFilters() {
+      const db = loadDB();
+      const labs = [...new Set(db.tas.map(t => t.lab))];
+      const tas = [...new Set(db.tas.map(t => t.taName))];
+      const groups = [...new Set(db.students.map(s => String(s.group)))];
+
+      const curLab = document.getElementById('fltLab').value;
+      const curTA = document.getElementById('fltTA').value;
+      const curGrp = document.getElementById('fltGroup').value;
+
+      document.getElementById('fltLab').innerHTML = `<option value="ALL">الكل</option>` + labs.map(l => `<option value="${l}">${l}</option>`).join('');
+      document.getElementById('fltTA').innerHTML = `<option value="ALL">الكل</option>` + tas.map(t => `<option value="${t}">${t}</option>`).join('');
+      document.getElementById('fltGroup').innerHTML = `<option value="ALL">الكل</option>` + groups.map(g => `<option value="${g}">المجموعة (${g})</option>`).join('');
+
+      if (labs.includes(curLab)) document.getElementById('fltLab').value = curLab;
+      if (tas.includes(curTA)) document.getElementById('fltTA').value = curTA;
+      if (groups.includes(curGrp)) document.getElementById('fltGroup').value = curGrp;
+    }
+
+    function renderAdminReportsAndLocks() {
+      const db = loadDB();
+      const fLevel = document.getElementById('fltLevel').value;
+      const fLab = document.getElementById('fltLab').value;
+      const fTA = document.getElementById('fltTA').value;
+      const fGender = document.getElementById('fltGender').value;
+      const fGroup = document.getElementById('fltGroup').value;
+
+      // عرض الأقفال
+      const locksList = Object.values(db.locks);
+      const locksTbody = document.getElementById('admLocksTbody');
+      if (locksList.length === 0) {
+        locksTbody.innerHTML = `<tr><td colspan="8" style="color:#777;">لا توجد مجموعات مقفلة حالياً.</td></tr>`;
+      } else {
+        locksTbody.innerHTML = locksList.map(lk => `
+          <tr>
+            <td>${lk.lab}</td>
+            <td>${lk.taName}</td>
+            <td>${lk.level}</td>
+            <td>${lk.gender}</td>
+            <td>${lk.group}</td>
+            <td>${lk.count}</td>
+            <td>${lk.timestamp}</td>
+            <td>
+              <button class="btn btn-gold" style="padding:5px 12px; font-size:0.8rem;" onclick="adminUnlockGroup('${lk.lockKey}')">
+                <i class="fa-solid fa-lock-open"></i> إعادة فتح الرصد للمعيد
+              </button>
+            </td>
+          </tr>
+        `).join('');
+      }
+
+      // بناء التقرير حسب الفلاتر
+      const targetLabs = fLab === 'ALL' ? [...new Set(db.tas.map(t => t.lab))] : [fLab];
+      const compiledRows = [];
+
+      db.students.forEach(stu => {
+        if (fLevel !== 'ALL' && stu.level !== fLevel) return;
+        if (fGender !== 'ALL' && stu.gender !== fGender) return;
+        if (fGroup !== 'ALL' && String(stu.group) !== fGroup) return;
+
+        targetLabs.forEach(labName => {
+          const gRecord = db.gradesMap[`${labName}|${stu.academicId}`];
+          const taRased = gRecord ? gRecord.taName : 'لم يُرصد';
+          const gradeVal = gRecord ? gRecord.grade : '-';
+
+          if (fTA !== 'ALL' && taRased !== fTA) return;
+
+          compiledRows.push({
+            academicId: stu.academicId,
+            name: stu.name,
+            gender: stu.gender,
+            level: stu.level,
+            batch: stu.batch,
+            group: stu.group,
+            lab: labName,
+            grade: gradeVal,
+            taName: taRased
+          });
+        });
+      });
+
+      document.getElementById('admReportTbody').innerHTML = compiledRows.map((r, i) => `
+        <tr>
+          <td>${i + 1}</td>
+          <td>${r.academicId}</td>
+          <td style="text-align:right; padding-right:16px;">${r.name}</td>
+          <td>${r.gender}</td>
+          <td>${r.level}</td>
+          <td>${r.batch}</td>
+          <td>${r.group}</td>
+          <td>${r.lab}</td>
+          <td style="font-weight:900; color:${r.grade === '-' ? '#94a3b8' : 'var(--sanaa-emerald)'};">${r.grade}</td>
+          <td>${r.taName}</td>
+        </tr>
+      `).join('');
+
+      window._lastAdminReport = compiledRows;
+    }
+
+    function adminUnlockGroup(lockKey) {
+      const db = loadDB();
+      delete db.locks[lockKey];
+      saveDB(db);
+      renderAdminReportsAndLocks();
+      refreshAdminPortal();
+      Swal.fire('تم فتح القفل', 'أصبحت المجموعة متاحة للمعيد للتعديل وإعادة الاعتماد', 'success');
+    }
+
+    function exportAdminReportToExcel() {
+      const rows = window._lastAdminReport || [];
+      if (rows.length === 0) {
+        Swal.fire('تنبيه', 'لا توجد بيانات مطابقة للفلتر لتصديرها', 'info');
+        return;
+      }
+      const db = loadDB();
+      const data = rows.map((r, i) => ({
+        'المسلسل': i + 1,
+        'الرقم الأكاديمي': r.academicId,
+        'اسم الطالب': r.name,
+        'النوع': r.gender,
+        'المستوى الدراسي': r.level,
+        'الدفعة': r.batch,
+        'المجموعة': r.group,
+        'البلك': db.settings.blockName,
+        'المعمل': r.lab,
+        'درجة النشاط': r.grade,
+        'المعيد الراصد': r.taName
+      }));
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(data);
+      XLSX.utils.book_append_sheet(wb, ws, 'تقرير_الدرجات');
+      XLSX.writeFile(wb, `تقرير_رصد_النشاط_${db.settings.blockName}.xlsx`);
+    }
+
+    // ================= منطق بوابة المعيد (TA Portal) =================
+    function initTaPortalView() {
+      const db = loadDB();
+      document.getElementById('taPortalName').textContent = activeSession.taName;
+      document.getElementById('taMaxAllowedBadge').textContent = db.settings.maxGrade;
+      document.getElementById('thMaxGradeVal').textContent = db.settings.maxGrade;
+
+      const labs = [...new Set(activeSession.assignments.map(a => a.lab))];
+      document.getElementById('taSelLab').innerHTML = labs.map(l => `<option value="${l}">${l}</option>`).join('');
+      onTaLabSelect();
+    }
+
+    function onTaLabSelect() {
+      const lab = document.getElementById('taSelLab').value;
+      const matches = activeSession.assignments.filter(a => a.lab === lab);
+      const levels = [...new Set(matches.map(m => m.level))];
+      document.getElementById('taSelLevel').innerHTML = levels.map(lv => `<option value="${lv}">${lv}</option>`).join('');
+      onTaLevelSelect();
+    }
+
+    function onTaLevelSelect() {
+      const lab = document.getElementById('taSelLab').value;
+      const level = document.getElementById('taSelLevel').value;
+      const assign = activeSession.assignments.find(a => a.lab === lab && a.level === level);
+      if (!assign) return;
+
+      const genders = assign.gender.split(',').map(s => s.trim()).filter(Boolean);
+      const groups = assign.groups.split(',').map(s => s.trim()).filter(Boolean);
+
+      document.getElementById('taSelGender').innerHTML = genders.map(g => `<option value="${g}">${g}</option>`).join('');
+      document.getElementById('taSelGroup').innerHTML = groups.map(grp => `<option value="${grp}">المجموعة (${grp})</option>`).join('');
+
+      renderTaGradingTable();
+    }
+
+    function renderTaGradingTable() {
+      const db = loadDB();
+      const lab = document.getElementById('taSelLab').value;
+      const level = document.getElementById('taSelLevel').value;
+      const gender = document.getElementById('taSelGender').value;
+      const group = document.getElementById('taSelGroup').value;
+      const maxGrade = Number(db.settings.maxGrade);
+
+      const lockKey = `${lab}|${level}|${gender}|${group}`;
+      const lockInfo = db.locks[lockKey];
+      const isLocked = !!lockInfo;
+
+      const studentsList = db.students.filter(s =>
+        s.level.trim() === level.trim() &&
+        s.gender.trim() === gender.trim() &&
+        String(s.group).trim() === String(group).trim()
+      );
+
+      // تحديث الشريط المطابق لملف الإكسل
+      document.getElementById('rValLab').textContent = lab;
+      document.getElementById('rValTA').textContent = activeSession.taName;
+      document.getElementById('rValLevel').textContent = level;
+      document.getElementById('rValGender').textContent = gender;
+      document.getElementById('rValGroup').textContent = group;
+      document.getElementById('rValBatch').textContent = studentsList[0]?.batch || '43';
+      document.getElementById('rValCount').textContent = studentsList.length;
+
+      // تحديث لافتة القفل
+      const banner = document.getElementById('taLockBanner');
+      const statusText = document.getElementById('taLockStatusText');
+      const timeText = document.getElementById('taLockTimeText');
+      const submitBtn = document.getElementById('taSubmitBtn');
+
+      if (isLocked) {
+        banner.className = 'status-banner status-locked';
+        statusText.innerHTML = `<i class="fa-solid fa-lock"></i> تم رصد واعتماد هذه المجموعة مسبقاً — المجموعة مقفلة ولا يمكن تعديلها إلا عبر مسؤول النظام.`;
+        timeText.textContent = `تاريخ الاعتماد: ${lockInfo.timestamp}`;
+        submitBtn.classList.add('hidden');
+      } else {
+        banner.className = 'status-banner status-open';
+        statusText.innerHTML = `<i class="fa-solid fa-lock-open"></i> المجموعة مفتوحة للرصد — أعلى قيمة مسموحة للدرجة هي (${maxGrade}).`;
+        timeText.textContent = '';
+        submitBtn.classList.remove('hidden');
+      }
+
+      const tbody = document.getElementById('taGradingTbody');
+      if (studentsList.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="padding:24px; color:#777;">لا يوجد طلاب مضافين في هذه المجموعة حالياً.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = studentsList.map((stu, i) => {
+        const saved = db.gradesMap[`${lab}|${stu.academicId}`];
+        const gradeVal = saved !== undefined ? saved.grade : '';
+        return `
+          <tr>
+            <td>${i + 1}</td>
+            <td>${stu.academicId}</td>
+            <td style="text-align:right; padding-right:18px;">${stu.name}</td>
+            <td>${stu.gender}</td>
+            <td>${stu.level}</td>
+            <td>
+              <input type="number"
+                     step="0.5"
+                     min="0"
+                     max="${maxGrade}"
+                     inputmode="decimal"
+                     class="grade-input"
+                     data-academic="${stu.academicId}"
+                     data-name="${stu.name}"
+                     value="${gradeVal}"
+                     ${isLocked ? 'disabled' : ''}
+                     oninput="checkGradeLimit(this, ${maxGrade})">
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // تنبيه المعيد فوراً إذا أدخل درجة أكبر من المحددة من المسؤول
+    function checkGradeLimit(input, maxGrade) {
+      const v = input.value.trim();
+      if (v === '') return;
+      const num = Number(v);
+      if (isNaN(num) || num > maxGrade || num < 0) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'تنبيه: الدرجة تتجاوز الحد المسموح!',
+          text: `أعلى قيمة للدرجة حددها مسؤول النظام هي (${maxGrade}) درجات فقط.`,
+          confirmButtonText: 'حسناً'
+        });
+        input.value = '';
+      }
+    }
+
+    // إرسال الدرجات بعد تأكيد المعيد وإقفال المجموعة
+    function submitAndLockGroupGrades() {
+      const db = loadDB();
+      const maxGrade = Number(db.settings.maxGrade);
+      const inputs = Array.from(document.querySelectorAll('#taGradingTbody .grade-input'));
+
+      if (inputs.length === 0) {
+        Swal.fire('تنبيه', 'لا يوجد طلاب في هذه المجموعة لرصدهم', 'info');
+        return;
+      }
+
+      for (let inp of inputs) {
+        const val = inp.value.trim();
+        if (val === '' || isNaN(Number(val)) || Number(val) < 0 || Number(val) > maxGrade) {
+          inp.focus();
+          Swal.fire('رصد غير مكتمل', `يرجى إدخال درجة صحيحة للطالب: ${inp.dataset.name}`, 'error');
+          return;
+        }
+      }
+
+      const lab = document.getElementById('taSelLab').value;
+      const level = document.getElementById('taSelLevel').value;
+      const gender = document.getElementById('taSelGender').value;
+      const group = document.getElementById('taSelGroup').value;
+
+      Swal.fire({
+        icon: 'question',
+        title: 'تأكيد سلامة الرصد قبل الإرسال النهائي',
+        html: `هل تؤكد سلامة وصحة درجات <b>المجموعة (${group}) - ${gender}</b> في معمل <b>${lab}</b>؟<br><small style="color:#b81d24; font-weight:800;">تنبيه: بعد الموافقة سيتم ترحيل الدرجات وإقفال المجموعة ولن يكون متاحاً لك التعديل فيها.</small>`,
+        showCancelButton: true,
+        confirmButtonColor: '#0b7a4b',
+        confirmButtonText: 'نعم، أؤكد سلامة الرصد وإرسال الدرجات',
+        cancelButtonText: 'مراجعة الدرجات'
+      }).then(res => {
+        if (res.isConfirmed) {
+          const timestamp = new Date().toLocaleString('ar-YE');
+          const lockKey = `${lab}|${level}|${gender}|${group}`;
+
+          inputs.forEach(inp => {
+            db.gradesMap[`${lab}|${inp.dataset.academic}`] = {
+              grade: Number(inp.value),
+              taName: activeSession.taName,
+              lab: lab,
+              timestamp: timestamp
+            };
+          });
+
+          db.locks[lockKey] = {
+            lockKey,
+            taName: activeSession.taName,
+            lab,
+            level,
+            gender,
+            group,
+            count: inputs.length,
+            timestamp
+          };
+
+          saveDB(db);
+          renderTaGradingTable();
+
+          Swal.fire({
+            icon: 'success',
+            title: 'تم إرسال الدرجات وإقفال المجموعة!',
+            text: 'يمكنك الآن حفظ الكشف بصيغة PDF أو اختيار المجموعة التالية.'
+          });
+        }
+      });
+    }
+
+    function saveCurrentGroupAsPDF() {
+      const lab = document.getElementById('taSelLab').value;
+      const group = document.getElementById('taSelGroup').value;
+      const gender = document.getElementById('taSelGender').value;
+      const element = document.getElementById('taPrintableArea');
+
+      const opt = {
+        margin: 8,
+        filename: `كشف_درجات_${lab}_مجموعة_${group}_${gender}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+
+      html2pdf().set(opt).from(element).save();
+    }
+  </script>
+</body>
+</html>
